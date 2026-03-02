@@ -1,0 +1,15 @@
+import Component from '@/components/3d-globe-demo-3'
+import KeyboardDemo from '@/components/ui/keyboard-demo'
+import SparklesPreview from '@/components/ui/sparkles-demo'
+import SparklesFullpagePreview from '@/components/ui/sparkles-fullpage-demo'
+
+export default function Page() {
+  return (
+    <main className="w-full">
+      <Component />
+      <KeyboardDemo />
+      <SparklesPreview />
+      <SparklesFullpagePreview />
+    </main>
+  )
+}
