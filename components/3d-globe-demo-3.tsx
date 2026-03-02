@@ -1,5 +1,6 @@
 "use client";
 import { Globe3D, GlobeMarker } from "@/components/ui/3d-globe";
+import { SparklesCore } from "@/components/ui/sparkles";
 
 const sampleMarkers: GlobeMarker[] = [
   {
@@ -85,6 +86,19 @@ const sampleMarkers: GlobeMarker[] = [
 export default function Globe3DDemoThird() {
   return (
     <div className="relative w-full min-h-svh bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 overflow-hidden">
+      {/* Sparkles background */}
+      <div className="absolute inset-0">
+        <SparklesCore
+          background="transparent"
+          minSize={0.4}
+          maxSize={1}
+          particleDensity={1200}
+          className="w-full h-full"
+          particleColor="#FFFFFF"
+        />
+      </div>
+      <div className="pointer-events-none absolute inset-0 bg-slate-950/35" />
+
       {/* Decorative background elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl -mr-48 -mt-48"></div>
