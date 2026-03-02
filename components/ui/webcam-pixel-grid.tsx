@@ -73,6 +73,7 @@ export const WebcamPixelGrid: React.FC<WebcamPixelGridProps> = ({
   const previousFrameRef = useRef<Uint8ClampedArray | null>(null);
   const pixelDataRef = useRef<PixelData[][]>([]);
   const animationRef = useRef<number>(0);
+  const requestIdRef = useRef(0);
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showErrorPopup, setShowErrorPopup] = useState(true);
@@ -115,7 +116,12 @@ export const WebcamPixelGrid: React.FC<WebcamPixelGridProps> = ({
 
   // Request camera access
   const requestCameraAccess = useCallback(async () => {
+    const requestId = ++requestIdRef.current;
     try {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+      }
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
           width: { ideal: 640 },
@@ -124,11 +130,29 @@ export const WebcamPixelGrid: React.FC<WebcamPixelGridProps> = ({
         },
       });
 
+      if (requestId !== requestIdRef.current) {
+        stream.getTracks().forEach((track) => track.stop());
+        return;
+      }
+
       streamRef.current = stream;
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        await videoRef.current.play();
+        try {
+          await videoRef.current.play();
+        } catch (playErr) {
+          if (
+            playErr instanceof DOMException &&
+            playErr.name === "AbortError"
+          ) {
+            return;
+          }
+          throw playErr;
+        }
+
+        if (requestId !== requestIdRef.current) return;
+
         setIsReady(true);
         setError(null);
         setShowErrorPopup(false);
@@ -147,8 +171,15 @@ export const WebcamPixelGrid: React.FC<WebcamPixelGridProps> = ({
     requestCameraAccess();
 
     return () => {
+      requestIdRef.current += 1;
+      cancelAnimationFrame(animationRef.current);
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+      }
+      if (videoRef.current) {
+        videoRef.current.pause();
+        videoRef.current.srcObject = null;
       }
     };
   }, [requestCameraAccess]);

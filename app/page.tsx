@@ -1,4 +1,5 @@
 import Component from '@/components/3d-globe-demo-3'
+import DraggableCardDemo from '@/components/ui/draggable-card-demo-2'
 import KeyboardDemo from '@/components/ui/keyboard-demo'
 import SparklesPreview from '@/components/ui/sparkles-demo'
 import SparklesFullpagePreview from '@/components/ui/sparkles-fullpage-demo'
@@ -9,6 +10,7 @@ export default function Page() {
   return (
     <main className="w-full">
       <Component />
+      <DraggableCardDemo />
       <KeyboardDemo />
       <SparklesPreview />
       <SparklesFullpagePreview />
