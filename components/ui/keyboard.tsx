@@ -236,6 +236,53 @@ const getKeyDisplayLabel = (keyCode: string): string => {
   return keyCode;
 };
 
+export type KeyboardInput =
+  | { type: "char"; value: string }
+  | { type: "space" }
+  | { type: "backspace" }
+  | { type: "enter" };
+
+const KEY_CODE_INPUT_MAP: Record<string, KeyboardInput> = {
+  Space: { type: "space" },
+  Backspace: { type: "backspace" },
+  Enter: { type: "enter" },
+  Backquote: { type: "char", value: "`" },
+  Minus: { type: "char", value: "-" },
+  Equal: { type: "char", value: "=" },
+  BracketLeft: { type: "char", value: "[" },
+  BracketRight: { type: "char", value: "]" },
+  Backslash: { type: "char", value: "\\" },
+  Semicolon: { type: "char", value: ";" },
+  Quote: { type: "char", value: "'" },
+  Comma: { type: "char", value: "," },
+  Period: { type: "char", value: "." },
+  Slash: { type: "char", value: "/" },
+};
+
+const getInputFromKeyCode = (keyCode: string): KeyboardInput | null => {
+  if (keyCode.startsWith("Key")) {
+    return { type: "char", value: keyCode.slice(3) };
+  }
+
+  if (keyCode.startsWith("Digit")) {
+    return { type: "char", value: keyCode.slice(5) };
+  }
+
+  return KEY_CODE_INPUT_MAP[keyCode] ?? null;
+};
+
+const getInputFromKeyboardEvent = (event: KeyboardEvent): KeyboardInput | null => {
+  if (event.key === "Backspace") return { type: "backspace" };
+  if (event.key === "Enter") return { type: "enter" };
+  if (event.key === " ") return { type: "space" };
+
+  if (event.key.length === 1) {
+    return { type: "char", value: event.key };
+  }
+
+  return null;
+};
+
 interface KeyboardContextType {
   playSoundDown: (keyCode: string) => void;
   playSoundUp: (keyCode: string) => void;
@@ -243,6 +290,8 @@ interface KeyboardContextType {
   setPressed: (keyCode: string) => void;
   setReleased: (keyCode: string) => void;
   lastPressedKey: string | null;
+  interactive: boolean;
+  triggerInput: (keyCode: string) => void;
 }
 
 const KeyboardContext = createContext<KeyboardContextType | null>(null);
@@ -259,10 +308,14 @@ const KeyboardProvider = ({
   children,
   enableSound = false,
   containerRef,
+  interactive = true,
+  onInput,
 }: {
   children: React.ReactNode;
   enableSound?: boolean;
   containerRef: React.RefObject<HTMLDivElement | null>;
+  interactive?: boolean;
+  onInput?: (input: KeyboardInput) => void;
 }) => {
   const audioContextRef = useRef<AudioContext | null>(null);
   const audioBufferRef = useRef<AudioBuffer | null>(null);
@@ -362,6 +415,17 @@ const KeyboardProvider = ({
     });
   }, []);
 
+  const triggerInput = useCallback(
+    (keyCode: string) => {
+      if (!interactive) return;
+      const input = getInputFromKeyCode(keyCode);
+      if (input) {
+        onInput?.(input);
+      }
+    },
+    [interactive, onInput],
+  );
+
   // Track visibility with IntersectionObserver
   useEffect(() => {
     const element = containerRef.current;
@@ -383,7 +447,7 @@ const KeyboardProvider = ({
 
   // Handle physical keyboard events (only when visible)
   useEffect(() => {
-    if (!isVisible) return;
+    if (!isVisible || !interactive) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       // Prevent repeat events
@@ -392,6 +456,10 @@ const KeyboardProvider = ({
       const keyCode = e.code;
       playSoundDown(keyCode);
       setPressed(keyCode);
+      const input = getInputFromKeyboardEvent(e);
+      if (input) {
+        onInput?.(input);
+      }
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
@@ -407,7 +475,7 @@ const KeyboardProvider = ({
       document.removeEventListener("keydown", handleKeyDown);
       document.removeEventListener("keyup", handleKeyUp);
     };
-  }, [isVisible, playSoundDown, playSoundUp, setPressed, setReleased]);
+  }, [interactive, isVisible, onInput, playSoundDown, playSoundUp, setPressed, setReleased]);
 
   return (
     <KeyboardContext.Provider
@@ -418,6 +486,8 @@ const KeyboardProvider = ({
         setPressed,
         setReleased,
         lastPressedKey,
+        interactive,
+        triggerInput,
       }}
     >
       {children}
@@ -490,19 +560,29 @@ export const Keyboard = ({
   className,
   enableSound = false,
   showPreview = false,
+  interactive = true,
+  onInput,
 }: {
   className?: string;
   enableSound?: boolean;
   showPreview?: boolean;
+  interactive?: boolean;
+  onInput?: (input: KeyboardInput) => void;
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   return (
-    <KeyboardProvider enableSound={enableSound} containerRef={containerRef}>
+    <KeyboardProvider
+      enableSound={enableSound}
+      containerRef={containerRef}
+      interactive={interactive}
+      onInput={onInput}
+    >
       <div
         ref={containerRef}
         className={cn(
           "mx-auto w-fit [zoom:0.8] sm:[zoom:1.25] md:[zoom:1.5] lg:[zoom:1.75] xl:[zoom:2]",
+          !interactive && "opacity-60",
           className,
         )}
       >
@@ -812,14 +892,15 @@ const Key = ({
   children?: React.ReactNode;
   keyCode?: string;
 }) => {
-  const { playSoundDown, playSoundUp, pressedKeys, setPressed, setReleased } =
+  const { playSoundDown, playSoundUp, pressedKeys, setPressed, setReleased, interactive, triggerInput } =
     useKeyboardSound();
   const isPressed = keyCode ? pressedKeys.has(keyCode) : false;
 
   const handleMouseDown = () => {
-    if (keyCode) {
+    if (keyCode && interactive) {
       playSoundDown(keyCode);
       setPressed(keyCode);
+      triggerInput(keyCode);
     }
   };
 
@@ -843,8 +924,10 @@ const Key = ({
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseLeave}
+        aria-disabled={!interactive}
         className={cn(
           "flex h-6 w-6 cursor-pointer items-center justify-center rounded-[3.5px] bg-gray-100 shadow-[0px_0px_1px_0px_rgba(0,0,0,0.5),0px_1px_1px_0px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(255,255,255,1)_inset] transition-transform duration-75 active:scale-[0.98]",
+          !interactive && "cursor-not-allowed",
           isPressed &&
             "scale-[0.98] bg-gray-100/80 shadow-[0px_0px_1px_0px_rgba(0,0,0,0.5),0px_1px_1px_0px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(255,255,255,0.5)]",
           className,
@@ -874,14 +957,15 @@ const ModifierKey = ({
   children?: React.ReactNode;
   keyCode?: string;
 }) => {
-  const { playSoundDown, playSoundUp, pressedKeys, setPressed, setReleased } =
+  const { playSoundDown, playSoundUp, pressedKeys, setPressed, setReleased, interactive, triggerInput } =
     useKeyboardSound();
   const isPressed = keyCode ? pressedKeys.has(keyCode) : false;
 
   const handleMouseDown = () => {
-    if (keyCode) {
+    if (keyCode && interactive) {
       playSoundDown(keyCode);
       setPressed(keyCode);
+      triggerInput(keyCode);
     }
   };
 
@@ -905,8 +989,10 @@ const ModifierKey = ({
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseLeave}
+        aria-disabled={!interactive}
         className={cn(
           "flex h-6 w-6 cursor-pointer items-center justify-center rounded-[3.5px] bg-gray-100 shadow-[0px_0px_1px_0px_rgba(0,0,0,0.5),0px_1px_1px_0px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(255,255,255,1)_inset] transition-transform duration-75 active:scale-[0.98]",
+          !interactive && "cursor-not-allowed",
           isPressed &&
             "scale-[0.98] bg-gray-100/80 shadow-[0px_0px_1px_0px_rgba(0,0,0,0.5),0px_1px_1px_0px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(255,255,255,0.5)]",
           className,

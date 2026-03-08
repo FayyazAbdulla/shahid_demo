@@ -160,7 +160,11 @@ export const WebcamPixelGrid: React.FC<WebcamPixelGridProps> = ({
       }
     } catch (err) {
       const error =
-        err instanceof Error ? err : new Error("Webcam access denied");
+        err instanceof DOMException && err.name === "NotAllowedError"
+          ? new Error("Camera access was denied. You can still continue without the webcam effect.")
+          : err instanceof Error
+            ? err
+            : new Error("Webcam access denied");
       setError(error.message);
       onWebcamError?.(error);
     }
@@ -500,10 +504,10 @@ export const WebcamPixelGrid: React.FC<WebcamPixelGridProps> = ({
             {/* Content */}
             <div className="flex-1 pr-4">
               <p className="text-sm font-medium text-white/90">
-                Camera access needed
+                Camera access unavailable
               </p>
               <p className="mt-1 text-xs text-white/50">
-                Enable camera for the interactive background effect
+                Allow camera access to enable the interactive background, or continue without it.
               </p>
               <button
                 onClick={requestCameraAccess}

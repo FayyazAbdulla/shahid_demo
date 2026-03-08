@@ -1,61 +1,30 @@
 "use client";
+
 import React from "react";
 import {
   DraggableCardBody,
   DraggableCardContainer,
 } from "@/components/ui/draggable-card";
+import { serviceSectionContent, services } from "@/environment/data";
 
 export default function DraggableCardDemo() {
-  const items = [
-    {
-      title: "Tyler Durden",
-      image:
-        "https://images.unsplash.com/photo-1732310216648-603c0255c000?q=80&w=3540&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-      className: "absolute top-10 left-[20%] rotate-[-5deg]",
-    },
-    {
-      title: "The Narrator",
-      image:
-        "https://images.unsplash.com/photo-1697909623564-3dae17f6c20b?q=80&w=2667&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-      className: "absolute top-40 left-[25%] rotate-[-7deg]",
-    },
-    {
-      title: "Iceland",
-      image:
-        "https://images.unsplash.com/photo-1501854140801-50d01698950b?q=80&w=2600&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-      className: "absolute top-5 left-[40%] rotate-[8deg]",
-    },
-    {
-      title: "Japan",
-      image:
-        "https://images.unsplash.com/photo-1518173946687-a4c8892bbd9f?q=80&w=3648&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-      className: "absolute top-32 left-[55%] rotate-[10deg]",
-    },
-    {
-      title: "Norway",
-      image:
-        "https://images.unsplash.com/photo-1421789665209-c9b2a435e3dc?q=80&w=3542&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-      className: "absolute top-20 right-[35%] rotate-[2deg]",
-    },
-    {
-      title: "New Zealand",
-      image:
-        "https://images.unsplash.com/photo-1505142468610-359e7d316be0?q=80&w=3070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-      className: "absolute top-24 left-[45%] rotate-[-7deg]",
-    },
-    {
-      title: "Canada",
-      image:
-        "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=2560&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-      className: "absolute top-8 left-[30%] rotate-[4deg]",
-    },
-  ];
   return (
-    <DraggableCardContainer className="relative flex min-h-screen w-full items-center justify-center overflow-clip">
-      <p className="absolute top-1/2 mx-auto max-w-sm -translate-y-3/4 text-center text-2xl font-black text-neutral-400 md:text-4xl dark:text-neutral-800">
-        If its your first day at Fight Club, you have to fight.
+    <DraggableCardContainer className="relative flex min-h-screen w-full items-center justify-center overflow-clip bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.12),_transparent_36%),linear-gradient(180deg,#f8fafc_0%,#eef2ff_100%)] dark:bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.18),_transparent_36%),linear-gradient(180deg,#020617_0%,#0f172a_100%)]">
+      <div className="pointer-events-none absolute top-16 mx-auto max-w-2xl px-6 text-center">
+        <p className="text-xs font-semibold uppercase tracking-[0.35em] text-sky-600 dark:text-sky-300">
+          {serviceSectionContent.eyebrow}
+        </p>
+        <h2 className="mt-4 text-3xl font-black text-neutral-800 md:text-5xl dark:text-white">
+          {serviceSectionContent.title}
+        </h2>
+        <p className="mt-4 text-sm text-neutral-500 md:text-base dark:text-neutral-300">
+          {serviceSectionContent.description}
+        </p>
+      </div>
+      <p className="absolute top-1/2 mx-auto max-w-lg -translate-y-3/4 px-4 text-center text-xl font-black text-neutral-500 md:text-3xl dark:text-neutral-700">
+        Drag each capability card to explore the services behind our delivery model.
       </p>
-      {items.map((item) => (
+      {services.map((item) => (
         <DraggableCardBody key={item.title} className={item.className}>
           <img
             src={item.image}
@@ -65,6 +34,9 @@ export default function DraggableCardDemo() {
           <h3 className="mt-4 text-center text-2xl font-bold text-neutral-700 dark:text-neutral-300">
             {item.title}
           </h3>
+          <p className="mt-2 max-w-72 text-center text-sm text-neutral-500 dark:text-neutral-400">
+            {item.description}
+          </p>
         </DraggableCardBody>
       ))}
     </DraggableCardContainer>

@@ -1,13 +1,11 @@
 "use client";
 
 import { WebcamPixelGrid } from "@/components/ui/webcam-pixel-grid";
+import { companyData, contactInformation, ctaContent, testimonials } from "@/environment/data";
 
 export default function WebcamPixelGridDemo() {
   return (
-    <div className="relative h-screen w-screen bg-black overflow-hidden">
-     
-
-      {/* Webcam pixel grid background */}
+    <div className="relative h-screen w-screen overflow-hidden bg-black">
       <div className="absolute inset-0">
         <WebcamPixelGrid
           gridCols={60}
@@ -23,59 +21,54 @@ export default function WebcamPixelGridDemo() {
           darken={0.6}
           borderColor="#ffffff"
           borderOpacity={0.06}
-          className="w-full h-full"
-          onWebcamReady={() => console.log("Webcam ready!")}
-          onWebcamError={(err) => console.error("Webcam error:", err)}
+          className="h-full w-full"
         />
       </div>
 
-      {/* Gradient overlay for better text readability */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60 pointer-events-none" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60" />
 
-      {/* Hero content */}
       <div className="relative z-10 flex h-full flex-col items-center justify-center px-4">
         <div className="max-w-4xl text-center">
-          {/* Badge */}
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-sm text-white/70 backdrop-blur-sm">
-            Introducing AI SaaS Template &rarr;
+            {ctaContent.eyebrow}
           </div>
 
-          {/* Title */}
           <h1 className="mb-6 text-xl font-bold tracking-tight text-white sm:text-6xl md:text-8xl">
-          Ship stunning landing pages faster.
+            {ctaContent.title}
           </h1>
 
-          {/* Description */}
           <p className="mx-auto mb-10 max-w-2xl text-base text-white/60 sm:text-xl">
-            Build amazing landing pages with component blocks and templates from aceternity, without having to worry about styling and animations.
+            {ctaContent.description}
           </p>
 
-          {/* Buttons */}
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <button className="group relative inline-flex h-12 items-center justify-center gap-2 rounded-full bg-white px-8 text-base font-medium text-black transition-all hover:bg-white/90 hover:scale-105">
-              Get Started
-              <svg
-                className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17 8l4 4m0 0l-4 4m4-4H3"
-                />
-              </svg>
-            </button>
-            <button className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/20 bg-white/5 px-8 text-base font-medium text-white backdrop-blur-sm transition-all hover:bg-white/10 hover:border-white/30">
-              View Documentation
-            </button>
+            <a
+              href={`mailto:${contactInformation.email}`}
+              className="group relative inline-flex h-12 items-center justify-center gap-2 rounded-full bg-white px-8 text-base font-medium text-black transition-all hover:scale-105 hover:bg-white/90"
+            >
+              {ctaContent.primaryCta}
+            </a>
+            <a
+              href={`tel:${contactInformation.phone.replace(/\s+/g, "")}`}
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/20 bg-white/5 px-8 text-base font-medium text-white backdrop-blur-sm transition-all hover:border-white/30 hover:bg-white/10"
+            >
+              {ctaContent.secondaryCta}
+            </a>
+          </div>
+
+          <div className="mt-10 grid gap-4 text-left md:grid-cols-2">
+            {testimonials.map((item) => (
+              <div key={item.author} className="rounded-3xl border border-white/10 bg-black/30 p-5 backdrop-blur-sm">
+                <p className="text-sm text-white/80">"{item.quote}"</p>
+                <p className="mt-4 text-sm font-semibold text-white">{item.author}</p>
+                <p className="text-xs uppercase tracking-[0.25em] text-white/50">{item.role}</p>
+              </div>
+            ))}
           </div>
         </div>
-
-        {/* Scroll indicator */}
-        
+        <p className="mt-8 text-xs uppercase tracking-[0.35em] text-white/50">
+          {companyData.name} • {contactInformation.address}
+        </p>
       </div>
     </div>
   );
