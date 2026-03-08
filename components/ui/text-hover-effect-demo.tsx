@@ -93,9 +93,13 @@ export default function TextHoverEffectDemo() {
           <div className="h-28 w-full md:h-40">
             <TextHoverEffect text="NEXA" />
           </div>
-          <p className="mt-2 text-center text-[13vw] font-black uppercase leading-none tracking-[0.14em] text-black md:text-[7rem]">
-            {footerContent.tagline}
-          </p>
+          <div className="mt-4 h-24 w-full md:h-44">
+            <TextHoverEffect
+              text={footerContent.statement}
+              viewBox="0 0 1200 140"
+              textLength={1120}
+            />
+          </div>
         </div>
 
         <div className="mt-10 flex flex-col gap-4 border-t border-black/10 pt-6 text-sm text-black/50 md:flex-row md:items-center md:justify-between">

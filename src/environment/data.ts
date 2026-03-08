@@ -249,6 +249,7 @@ export const footerNavigation = [
 
 export const footerContent = {
   tagline: "Build first / Then scale.",
+  statement: "BUILD / SCALE / SECURE.",
   legal:
     "Copyright © 2026 Northstar Labs. Built for ambitious teams shipping modern digital platforms.",
   helperText:
