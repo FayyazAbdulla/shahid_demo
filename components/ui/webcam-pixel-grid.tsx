@@ -37,6 +37,8 @@ type WebcamPixelGridProps = {
   onWebcamError?: (error: Error) => void;
   /** Callback when webcam is ready */
   onWebcamReady?: () => void;
+  /** Whether camera access should be requested immediately on mount */
+  startOnMount?: boolean;
 };
 
 type PixelData = {
@@ -66,6 +68,7 @@ export const WebcamPixelGrid: React.FC<WebcamPixelGridProps> = ({
   className,
   onWebcamError,
   onWebcamReady,
+  startOnMount = false,
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const processingCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -77,6 +80,8 @@ export const WebcamPixelGrid: React.FC<WebcamPixelGridProps> = ({
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showErrorPopup, setShowErrorPopup] = useState(true);
+  const [hasStarted, setHasStarted] = useState(startOnMount);
+  const [isDismissed, setIsDismissed] = useState(false);
 
   // Parse monochrome color
   const monoRGB = React.useMemo(() => {
@@ -166,12 +171,22 @@ export const WebcamPixelGrid: React.FC<WebcamPixelGridProps> = ({
             ? err
             : new Error("Webcam access denied");
       setError(error.message);
+      setIsReady(false);
+      setShowErrorPopup(true);
       onWebcamError?.(error);
     }
   }, [onWebcamError, onWebcamReady]);
 
-  // Initialize webcam on mount
+  const startCamera = useCallback(() => {
+    setIsDismissed(false);
+    setHasStarted(true);
+    void requestCameraAccess();
+  }, [requestCameraAccess]);
+
+  // Initialize webcam after user opt-in or when explicitly enabled
   useEffect(() => {
+    if (!hasStarted) return;
+
     requestCameraAccess();
 
     return () => {
@@ -186,7 +201,7 @@ export const WebcamPixelGrid: React.FC<WebcamPixelGridProps> = ({
         videoRef.current.srcObject = null;
       }
     };
-  }, [requestCameraAccess]);
+  }, [hasStarted, requestCameraAccess]);
 
   // Main render loop
   const render = useCallback(() => {
@@ -460,8 +475,38 @@ export const WebcamPixelGrid: React.FC<WebcamPixelGridProps> = ({
         style={{ backgroundColor }}
       />
 
+      {!hasStarted && !isDismissed && (
+        <div className="animate-in fade-in absolute inset-0 z-40 flex items-center justify-center bg-black/35 p-4 duration-300">
+          <div className="w-full max-w-md rounded-3xl border border-white/10 bg-black/70 p-6 text-white shadow-2xl backdrop-blur-xl">
+            <p className="text-sm font-medium uppercase tracking-[0.28em] text-cyan-300">
+              Interactive Background
+            </p>
+            <h3 className="mt-4 text-2xl font-semibold">
+              Enable camera access to activate the live pixel grid effect.
+            </h3>
+            <p className="mt-3 text-sm leading-7 text-white/65">
+              This background uses your camera feed locally in the browser. If you skip it, the rest of the page still works normally.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <button
+                onClick={startCamera}
+                className="rounded-full bg-white px-5 py-2.5 text-sm font-medium text-black transition hover:bg-white/90"
+              >
+                Enable Camera
+              </button>
+              <button
+                onClick={() => setIsDismissed(true)}
+                className="rounded-full border border-white/15 px-5 py-2.5 text-sm font-medium text-white/80 transition hover:bg-white/5"
+              >
+                Continue Without It
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Error popup */}
-      {error && showErrorPopup && (
+      {hasStarted && error && showErrorPopup && (
         <div className="animate-in fade-in slide-in-from-top-2 fixed top-4 right-4 z-50 duration-300">
           <div className="relative flex max-w-sm items-start gap-3 rounded-lg border border-white/10 bg-black/80 p-4 shadow-2xl backdrop-blur-xl">
             {/* Close button */}
@@ -510,7 +555,7 @@ export const WebcamPixelGrid: React.FC<WebcamPixelGridProps> = ({
                 Allow camera access to enable the interactive background, or continue without it.
               </p>
               <button
-                onClick={requestCameraAccess}
+                onClick={startCamera}
                 className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-white/10 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-white/20"
               >
                 <svg
@@ -534,7 +579,7 @@ export const WebcamPixelGrid: React.FC<WebcamPixelGridProps> = ({
       )}
 
       {/* Minimized error indicator */}
-      {error && !showErrorPopup && (
+      {hasStarted && error && !showErrorPopup && (
         <button
           onClick={() => setShowErrorPopup(true)}
           className="fixed top-4 right-4 z-50 flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-black/60 text-white/50 shadow-lg backdrop-blur-xl transition-all hover:scale-105 hover:bg-black/80 hover:text-white/80"

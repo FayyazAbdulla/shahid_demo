@@ -22,6 +22,7 @@ export default function WebcamPixelGridDemo() {
           borderColor="#ffffff"
           borderOpacity={0.06}
           className="h-full w-full"
+          startOnMount={false}
         />
       </div>
 

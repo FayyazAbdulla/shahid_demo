@@ -265,6 +265,7 @@ function RotatingGlobe({
   onMarkerHover,
 }: RotatingGlobeProps) {
   const groupRef = useRef<THREE.Group>(null);
+  const idleRotationYRef = useRef(config.initialRotation.y ?? 0);
 
   // Load Earth textures
   const [earthTexture, bumpTexture] = useTexture([
@@ -291,6 +292,32 @@ function RotatingGlobe({
   const wireframeGeometry = useMemo(() => {
     return new THREE.SphereGeometry(config.radius * 1.002, 32, 16);
   }, [config.radius]);
+
+  useFrame((state, delta) => {
+    if (!groupRef.current) return;
+
+    const maxPitch = 0.55;
+    const maxYaw = 1.15;
+    const baseRotationX = config.initialRotation.x ?? 0;
+
+    idleRotationYRef.current += delta * config.autoRotateSpeed * 0.45;
+
+    const targetX = baseRotationX + -state.pointer.y * maxPitch;
+    const targetY = idleRotationYRef.current + state.pointer.x * maxYaw;
+
+    groupRef.current.rotation.x = THREE.MathUtils.damp(
+      groupRef.current.rotation.x,
+      targetX,
+      5.5,
+      delta,
+    );
+    groupRef.current.rotation.y = THREE.MathUtils.damp(
+      groupRef.current.rotation.y,
+      targetY,
+      4.6,
+      delta,
+    );
+  });
 
   return (
     <group ref={groupRef}>
@@ -400,7 +427,12 @@ interface SceneProps {
   onMarkerHover?: (marker: GlobeMarker | null) => void;
 }
 
-function Scene({ markers, config, onMarkerClick, onMarkerHover }: SceneProps) {
+function Scene({
+  markers,
+  config,
+  onMarkerClick,
+  onMarkerHover,
+}: SceneProps) {
   const { camera } = useThree();
 
   // Set initial camera position (pulled back to accommodate markers)
@@ -447,11 +479,12 @@ function Scene({ markers, config, onMarkerClick, onMarkerHover }: SceneProps) {
         makeDefault
         enablePan={config.enablePan}
         enableZoom={config.enableZoom}
+        enableRotate={false}
         minDistance={config.minDistance}
         maxDistance={config.maxDistance}
         rotateSpeed={0.4}
-        autoRotate={config.autoRotateSpeed > 0}
-        autoRotateSpeed={config.autoRotateSpeed}
+        autoRotate={false}
+        autoRotateSpeed={0}
         enableDamping
         dampingFactor={0.1}
       />

@@ -1,11 +1,123 @@
 "use client";
 
-import { useRef } from "react";
+import { memo, useRef } from "react";
 import { motion, useScroll, useTransform } from "motion/react";
 import { Globe3D, GlobeMarker } from "@/components/ui/3d-globe";
 import { SparklesCore } from "@/components/ui/sparkles";
-import { globalOperationsContent } from "@/environment/data";
+import { companyData, globalOperationsContent } from "@/environment/data";
 import { useTypingText } from "@/hooks/use-typing-text";
+
+const layeredTitle = "Built for global scale and uptime";
+const layeredDescription =
+  "Unified visibility for cloud, product, and AI teams operating as one delivery network.";
+
+const heroMetrics = [
+  globalOperationsContent.stats[0],
+  globalOperationsContent.stats[1],
+  globalOperationsContent.stats[2],
+].filter(Boolean);
+
+const floatingMetrics = [
+  {
+    label: globalOperationsContent.stats[0]?.label ?? "Managed cloud spend",
+    value: globalOperationsContent.stats[0]?.value ?? "$24M",
+    className: "left-[2%] top-[22%] xl:left-[6%]",
+  },
+  {
+    label: globalOperationsContent.stats[1]?.label ?? "Platform uptime",
+    value: globalOperationsContent.stats[1]?.value ?? "99.99%",
+    className: "right-[4%] top-[18%] xl:right-[10%]",
+  },
+  {
+    label: globalOperationsContent.stats[2]?.label ?? "Delivery regions",
+    value: globalOperationsContent.stats[2]?.value ?? "12",
+    className: "left-[8%] bottom-[16%] xl:left-[14%]",
+  },
+  {
+    label: globalOperationsContent.stats[3]?.label ?? "Daily events processed",
+    value: globalOperationsContent.stats[3]?.value ?? "1.8B",
+    className: "right-[8%] bottom-[12%] xl:right-[16%]",
+  },
+];
+
+const ContentOverlay = memo(function ContentOverlay() {
+  const titleLines = ["Built for", "global scale", "and uptime"];
+  const { displayedText: typedTitle, isComplete: isTitleComplete } = useTypingText(
+    titleLines.join("\n"),
+    { speed: 18, startDelay: 180 },
+  );
+  const { displayedText: typedDescription } = useTypingText(layeredDescription, {
+    speed: 12,
+    startDelay: 980,
+  });
+
+  const typedLines = typedTitle.split("\n");
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.15, duration: 0.7, ease: "easeOut" }}
+      className="relative z-20 max-w-[42rem]"
+    >
+      <div className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-slate-950/35 px-4 py-2 backdrop-blur-md">
+        <span className="h-2 w-2 rounded-full bg-cyan-300 shadow-[0_0_14px_rgba(103,232,249,0.9)]" />
+        <p className="text-[11px] font-semibold uppercase tracking-[0.38em] text-cyan-300">
+          {globalOperationsContent.eyebrow}
+        </p>
+      </div>
+
+      <div className="mt-7 space-y-1">
+        {typedLines.map((line, index) => (
+          <h1
+            key={`${line}-${index}`}
+            className="max-w-[12ch] text-[clamp(3.2rem,6vw,6.8rem)] font-black leading-[0.9] tracking-[-0.06em] text-white"
+          >
+            {line || "\u00A0"}
+            {index === typedLines.length - 1 && !isTitleComplete && (
+              <span className="ml-2 inline-block h-[0.86em] w-[0.08em] animate-pulse bg-cyan-200 align-[-0.08em]" />
+            )}
+          </h1>
+        ))}
+      </div>
+
+      <p className="mt-7 max-w-[32rem] text-base leading-8 text-slate-300 md:text-lg">
+        {typedDescription}
+        <span className="ml-1 inline-block h-5 w-[0.08em] animate-pulse bg-slate-300 align-[-0.12em]" />
+      </p>
+
+      <div className="mt-8 flex flex-wrap gap-3">
+        <div className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/85 backdrop-blur-sm">
+          Global cloud ops
+        </div>
+        <div className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/85 backdrop-blur-sm">
+          AI delivery teams
+        </div>
+        <div className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/85 backdrop-blur-sm">
+          Enterprise resilience
+        </div>
+      </div>
+
+      <div className="mt-9 grid max-w-3xl gap-3 sm:grid-cols-3">
+        {heroMetrics.map((item) => (
+          <div
+            key={item.label}
+            className="rounded-[22px] border border-white/10 bg-slate-950/38 px-4 py-4 backdrop-blur-md"
+          >
+            <p className="text-[10px] uppercase tracking-[0.28em] text-slate-400">
+              {item.label}
+            </p>
+            <p className="mt-2 text-3xl font-semibold tracking-tight text-cyan-200">{item.value}</p>
+          </div>
+        ))}
+      </div>
+
+      <p className="mt-8 max-w-[30rem] text-sm leading-7 text-slate-400">
+        {companyData.description}
+      </p>
+    </motion.div>
+  );
+});
 
 export default function Globe3DDemoThird() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -14,21 +126,13 @@ export default function Globe3DDemoThird() {
     offset: ["start end", "end start"],
   });
 
-  const globeY = useTransform(scrollYProgress, [0, 1], [80, -90]);
-  const globeScale = useTransform(scrollYProgress, [0, 1], [0.97, 1.04]);
-  const { displayedText: typedTitle, isComplete: isTitleComplete } = useTypingText(
-    globalOperationsContent.title,
-    { speed: 30, startDelay: 250 },
-  );
-  const { displayedText: typedDescription } = useTypingText(
-    globalOperationsContent.description,
-    { speed: 16, startDelay: 1450 },
-  );
+  const globeY = useTransform(scrollYProgress, [0, 1], [48, -24]);
+  const globeScale = useTransform(scrollYProgress, [0, 1], [1.02, 1.08]);
 
   return (
     <section
       ref={sectionRef}
-      className="relative min-h-svh w-full overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900"
+      className="relative min-h-svh w-full overflow-hidden bg-gradient-to-br from-slate-950 via-[#031236] to-slate-950"
     >
       <div className="absolute inset-0">
         <SparklesCore
@@ -40,85 +144,24 @@ export default function Globe3DDemoThird() {
           particleColor="#FFFFFF"
         />
       </div>
-      <div className="pointer-events-none absolute inset-0 bg-slate-950/35" />
 
-      <div className="absolute inset-0 overflow-hidden">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.6 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1.1, ease: "easeOut" }}
-          className="absolute right-0 top-0 -mr-48 -mt-48 h-96 w-96 rounded-full bg-cyan-500/10 blur-3xl"
-        />
-        <motion.div
-          initial={{ opacity: 0, scale: 0.6 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1.1, delay: 0.15, ease: "easeOut" }}
-          className="absolute bottom-0 left-0 -mb-40 -ml-40 h-80 w-80 rounded-full bg-blue-500/10 blur-3xl"
-        />
-      </div>
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_44%,rgba(14,165,233,0.16),transparent_32%),radial-gradient(circle_at_78%_52%,rgba(14,165,233,0.12),transparent_34%),linear-gradient(180deg,rgba(2,6,23,0.16),rgba(2,6,23,0.5))]" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-slate-950 via-slate-950/35 to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 left-0 w-[42%] bg-[radial-gradient(circle_at_left_center,rgba(15,23,42,0.52),rgba(15,23,42,0)_76%)]" />
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.7, ease: "easeOut" }}
-        className="relative z-10 mx-auto flex min-h-svh max-w-7xl flex-col items-center justify-center px-4 py-12 md:px-8"
-      >
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.7, ease: "easeOut" }}
-          className="mb-6 max-w-4xl text-center"
-        >
-          <p className="mb-2 text-xs uppercase tracking-[0.32em] text-cyan-200/75">
-            {globalOperationsContent.eyebrow}
-          </p>
-          <h1 className="bg-gradient-to-r from-white via-cyan-100 to-sky-300 bg-clip-text text-3xl font-black tracking-tight text-transparent md:text-6xl">
-            {typedTitle}
-            {!isTitleComplete && (
-              <span className="ml-1 inline-block h-[0.95em] w-[0.08em] animate-pulse bg-cyan-200 align-[-0.08em]" />
-            )}
-          </h1>
-          <p className="mt-2 text-sm text-slate-300 md:text-base">
-            {typedDescription}
-            <span className="ml-1 inline-block h-4 w-[0.08em] animate-pulse bg-slate-300 align-[-0.1em]" />
-          </p>
-        </motion.div>
-
+      <div className="relative z-10 min-h-svh px-4 py-14 md:px-8 lg:px-12 lg:py-20 2xl:px-16">
         <motion.div
           style={{ y: globeY, scale: globeScale }}
-          initial={{ opacity: 0, y: 100, scale: 0.82, rotateX: 16 }}
-          animate={{ opacity: 1, y: 0, scale: 1, rotateX: 0 }}
-          transition={{ delay: 0.28, duration: 1.05, ease: [0.16, 1, 0.3, 1] }}
-          className="relative h-[70vh] w-full max-w-[1200px]"
+          className="pointer-events-none absolute inset-y-[-2%] right-[-22%] z-0 w-[118%] md:right-[-18%] md:w-[100%] lg:right-[-12%] lg:w-[78%] xl:right-[-8%] xl:w-[72%] 2xl:right-[-4%]"
         >
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.45, duration: 0.7, ease: "easeOut" }}
-            className="pointer-events-none absolute inset-[10%] rounded-full border border-cyan-300/12"
-          />
+          <div className="relative h-full min-h-[34rem] w-full md:min-h-[44rem] xl:min-h-[56rem]">
+            <div className="absolute inset-[8%] rounded-full border border-cyan-300/10 blur-[1px]" />
+            <div className="absolute inset-[16%] rounded-full border border-cyan-300/10" />
+            <div className="absolute inset-[24%] rounded-full border border-cyan-300/8" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(14,165,233,0.18),transparent_58%)]" />
+            <div className="absolute bottom-[8%] left-1/2 h-28 w-[74%] -translate-x-1/2 rounded-full bg-cyan-500/18 blur-3xl" />
+            <div className="absolute inset-x-[18%] top-[18%] h-px bg-gradient-to-r from-transparent via-cyan-300/20 to-transparent" />
 
-          <motion.div
-            initial={{ opacity: 0, scale: 0.7 }}
-            animate={{ opacity: [0, 0.45, 0.2], scale: [0.7, 1.04, 1] }}
-            transition={{ delay: 0.35, duration: 1.3, ease: "easeOut" }}
-            className="pointer-events-none absolute inset-0 rounded-full border border-cyan-300/20"
-          />
-          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-cyan-500/20 to-blue-500/20 blur-2xl" />
-          <motion.div
-            initial={{ y: -120, scale: 0.82, rotateY: -140, rotateX: 8, rotateZ: -3, opacity: 0 }}
-            animate={{ y: 0, scale: 1, rotateY: 0, rotateX: 0, rotateZ: 0, opacity: 1 }}
-            transition={{
-              y: { type: "spring", stiffness: 95, damping: 11, mass: 1.1 },
-              scale: { type: "spring", stiffness: 95, damping: 12, mass: 1.1 },
-              rotateY: { duration: 1.1, ease: [0.2, 0.95, 0.3, 1] },
-              rotateX: { duration: 0.8, ease: "easeOut" },
-              rotateZ: { duration: 0.8, ease: "easeOut" },
-              opacity: { duration: 0.45 },
-            }}
-            className="absolute inset-0 flex items-center justify-center"
-            style={{ transformStyle: "preserve-3d" }}
-          >
             <Globe3D
               className="h-full w-full"
               markers={globalOperationsContent.markers as GlobeMarker[]}
@@ -129,32 +172,31 @@ export default function Globe3DDemoThird() {
                 autoRotateSpeed: 0.18,
               }}
             />
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, scaleX: 0.55, scaleY: 0.7 }}
-            animate={{ opacity: [0, 0.35, 0.18], scaleX: [0.55, 1.05, 0.92], scaleY: [0.7, 1, 0.92] }}
-            transition={{ delay: 0.2, duration: 1.2, ease: "easeOut" }}
-            className="pointer-events-none absolute bottom-[8%] left-1/2 h-20 w-[62%] -translate-x-1/2 rounded-full bg-cyan-500/25 blur-3xl"
-          />
-
-          {globalOperationsContent.stats.map((item, i) => (
-            <motion.div
-              key={item.label}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: [0, -4, 0] }}
-              transition={{
-                opacity: { delay: 0.6 + i * 0.08, duration: 0.4 },
-                y: { duration: 5 + i * 0.8, repeat: Infinity, ease: "easeInOut" },
-              }}
-              className={`pointer-events-none absolute z-20 hidden rounded-xl border border-white/15 bg-slate-900/70 px-3 py-2 backdrop-blur md:block ${item.className}`}
-            >
-              <p className="text-[10px] uppercase tracking-[0.2em] text-slate-300">{item.label}</p>
-              <p className="text-sm font-bold text-cyan-200">{item.value}</p>
-            </motion.div>
-          ))}
+          </div>
         </motion.div>
-      </motion.div>
+
+        <div className="relative z-20 flex min-h-[80vh] items-center">
+          <div className="w-full max-w-[46rem] pb-[18rem] pt-4 md:max-w-[48rem] md:pb-[14rem] lg:max-w-[44rem] lg:pb-0 xl:max-w-[48rem]">
+            <ContentOverlay />
+          </div>
+        </div>
+
+        {/* {floatingMetrics.map((item, index) => (
+          <motion.div
+            key={item.label}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: [0, -4, 0] }}
+            transition={{
+              opacity: { delay: 0.45 + index * 0.08, duration: 0.4 },
+              y: { duration: 5 + index * 0.8, repeat: Infinity, ease: "easeInOut" },
+            }}
+            className={`pointer-events-none absolute z-30 hidden rounded-2xl border border-white/10 bg-slate-950/58 px-4 py-3 shadow-[0_20px_60px_rgba(2,6,23,0.35)] backdrop-blur-md lg:block ${item.className}`}
+          >
+            <p className="text-[10px] uppercase tracking-[0.26em] text-slate-400">{item.label}</p>
+            <p className="mt-2 text-2xl font-semibold tracking-tight text-cyan-200">{item.value}</p>
+          </motion.div>
+        ))} */}
+      </div>
     </section>
   );
 }

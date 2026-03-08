@@ -18,25 +18,34 @@ export function useTypingText(
     setDisplayedText("");
     setIsComplete(false);
 
+    if (!text) {
+      setIsComplete(true);
+      return;
+    }
+
     let timeoutId: ReturnType<typeof setTimeout> | undefined;
-    let intervalId: ReturnType<typeof setInterval> | undefined;
+    let cancelled = false;
     let index = 0;
 
-    timeoutId = setTimeout(() => {
-      intervalId = setInterval(() => {
-        index += 1;
-        setDisplayedText(text.slice(0, index));
+    const tick = () => {
+      if (cancelled) return;
 
-        if (index >= text.length) {
-          if (intervalId) clearInterval(intervalId);
-          setIsComplete(true);
-        }
-      }, speed);
-    }, startDelay);
+      index += 1;
+      setDisplayedText(text.slice(0, index));
+
+      if (index >= text.length) {
+        setIsComplete(true);
+        return;
+      }
+
+      timeoutId = setTimeout(tick, speed);
+    };
+
+    timeoutId = setTimeout(tick, startDelay);
 
     return () => {
+      cancelled = true;
       if (timeoutId) clearTimeout(timeoutId);
-      if (intervalId) clearInterval(intervalId);
     };
   }, [speed, startDelay, text]);
 
